@@ -9,11 +9,13 @@ class HubStation(object):
         self.MMc = MainMenu().catalog()
         self.dirTime = time.asctime(time.localtime(time.time()))
 
-    def engine(self, message_of_the_day, app_root_dir=''):
+    def engine(self, message_of_the_day, test_app_root_dir='', local={}):
 
-        s = [
-            app_root_dir + '/test',
-        ]
+        local['settings'] = {
+            'sys_test_dir': test_app_root_dir + '/test',
+            'user_gen_content_dir': '',
+            'user_gen_saved_dir': '',
+        }
 
         # Show menu in the terminal
         Display().reset
@@ -28,16 +30,30 @@ class HubStation(object):
         # What option would the user like to select?
         approved_commands = Display().approve_user_input(self.MMc)
 
+        # User would like to cut/sort files
+        if approved_commands['nmb'] == 1:
+            print("option 2 selected")
+            pass
+        elif approved_commands['nmb'] == 2:
+            print("option 3 selected")
+            pass
+        else:
+            print("nothing was approved")
+
         Display.reset()
 
+        # Seek the files that match or requirements 
+        harvested = self.gathering_list(local['settings']['sys_test_dir'])
+
         # Start sorting and building directories
-        l = self.dict_build_listing(self.seek_find(s[0]))
+        cl_list_reclusive_files = self.dict_build_listing(harvested)
 
-        self.make_directory(s[0], l)
+        exit()
+        self.make_directory(local['settings']['sys_test_dir'], cl_list_reclusive_files)
 
-    def make_directory(self, app_root_dir, list_of_file_names):
+    def make_directory(self, test_app_root_dir, list_of_file_names):
 
-        directory = [app_root_dir, app_root_dir + "/" + self.dirTime]
+        directory = [test_app_root_dir, test_app_root_dir + "/" + self.dirTime]
         WC = WriteContent()
 
         if WC.read_confirm_location(directory):
@@ -53,7 +69,6 @@ class HubStation(object):
         for each in classify:
             for key, value in each.items():
                 fL[key].append(value)
-
         return fL
 
     @staticmethod
@@ -71,21 +86,30 @@ class HubStation(object):
         return set(file_extensions), set(files_validated)
 
     @staticmethod
-    def seek_find(x, names=[], files_list=[]):
-        os.chdir(x),
+    def gathering_list(search_defined_directory, names=[], cl_list_gather_files=[]):
+        os.chdir(search_defined_directory),
+        print("switched dir...%s" % os.getcwd())
 
-        for (x, dir_names, f_names) in os.walk(x):
-            names.extend(f_names)
+        for (search_defined_directory, top_folder_names, top_file_names) in os.walk(search_defined_directory):
 
-            if f_names:  # If list not empty
+            print("files :: %s " % top_file_names)
+            print("folders :: %s " % top_folder_names)
+
+            # Are there files in the requested directory
+            if top_file_names:
+
                 for eachF in names:
                     # Confirm if a file extension exist
                     if "." in eachF:
-                        x, y = eachF.split('.')
+                        search_defined_directory, y = eachF.split('.')
 
-                        files_dict = {y: x}
-                        files_list.append(files_dict)
-        return files_list
+                        files_dict = {y: search_defined_directory}
+                        cl_list_gather_files.append(files_dict)
+            else:
+                print("No files are listed in that directory")
+
+        exit()
+        return cl_list_gather_files
 
 
 class WriteContent(object):

@@ -29,7 +29,7 @@ class MainMenu():
             },
             {
                 'nmb': 1,
-                'Mes': "Move/Sort all files",
+                'Mes': "Cut/Sort all files",
                 'com': [
                     "jpg",
                     "html",
