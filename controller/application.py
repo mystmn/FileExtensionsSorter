@@ -1,5 +1,6 @@
 from accessory.errors import station
 from accessory.sys import MainMenu
+from accessory.display import Display
 from collections import defaultdict
 import subprocess, os, time, shutil
 
@@ -42,13 +43,17 @@ class HubStation(object):
 
         Display.reset()
 
-        # Seek the files that match or requirements 
-        harvested = self.gathering_list(local['settings']['sys_test_dir'])
+        # Seek the files that match or requirements
+        if not local['settings']['user_gen_saved_dir']:
+            default_dir = local['settings']['sys_test_dir']
+        else:
+            default_dir = 'user_gen_saved_dir'
+
+        harvested = self.gathering_list(default_dir)
 
         # Start sorting and building directories
         cl_list_reclusive_files = self.dict_build_listing(harvested)
 
-        exit()
         self.make_directory(local['settings']['sys_test_dir'], cl_list_reclusive_files)
 
     def make_directory(self, test_app_root_dir, list_of_file_names):
@@ -90,25 +95,25 @@ class HubStation(object):
         os.chdir(search_defined_directory),
         print("switched dir...%s" % os.getcwd())
 
-        for (search_defined_directory, top_folder_names, top_file_names) in os.walk(search_defined_directory):
-
-            print("files :: %s " % top_file_names)
-            print("folders :: %s " % top_folder_names)
+        for (search_defined_directory, folder_List, file_List) in os.walk(search_defined_directory):
 
             # Are there files in the requested directory
-            if top_file_names:
+            if file_List:
 
-                for eachF in names:
+                for eachFile in file_List:
+
                     # Confirm if a file extension exist
-                    if "." in eachF:
-                        search_defined_directory, y = eachF.split('.')
+                    if "." in eachFile:
+                        search_defined_directory, y = eachFile.split('.')
 
                         files_dict = {y: search_defined_directory}
                         cl_list_gather_files.append(files_dict)
             else:
                 print("No files are listed in that directory")
 
-        exit()
+        if not cl_list_gather_files:
+            exit("I'm empty and need content")
+
         return cl_list_gather_files
 
 
@@ -141,7 +146,7 @@ class WriteContent(object):
     def write_location(x):
         os.makedirs(x[1])
         os.chdir(x[1])
-        print("%s has been created" % x[1])
+        print("'%s' has been created" % x[1])
 
 
 class Display(object):
