@@ -13,7 +13,8 @@ class HubStation(object):
     def engine(self, message_of_the_day, test_app_root_dir='', local={}):
 
         local['settings'] = {
-            'sys_test_dir': test_app_root_dir + '/test',
+            'sys_test_root_dir': test_app_root_dir + '/Test zone',
+            'sys_test_pull': '/pull',
             'user_gen_content_dir': '',
             'user_gen_saved_dir': '',
         }
@@ -33,19 +34,17 @@ class HubStation(object):
 
         # User would like to cut/sort files
         if approved_commands['nmb'] == 1:
-            print("option 2 selected")
-            pass
+            user_selected_option = shutil.move
         elif approved_commands['nmb'] == 2:
-            print("option 3 selected")
-            pass
+            user_selected_option = shutil.copy2
         else:
-            print("nothing was approved")
+            user_selected_option = 0
 
         Display.reset()
 
         # Seek the files that match or requirements
         if not local['settings']['user_gen_saved_dir']:
-            default_dir = local['settings']['sys_test_dir']
+            default_dir = local['settings']['sys_test_root_dir']
         else:
             default_dir = 'user_gen_saved_dir'
 
@@ -54,16 +53,18 @@ class HubStation(object):
         # Start sorting and building directories
         cl_list_reclusive_files = self.dict_build_listing(harvested)
 
-        self.make_directory(local['settings']['sys_test_dir'], cl_list_reclusive_files)
+        self.make_directory(local['settings'], cl_list_reclusive_files, user_selected_option)
 
-    def make_directory(self, test_app_root_dir, list_of_file_names):
+    def make_directory(self, x, list_of_file_names, user_sel_cmd):
 
-        directory = [test_app_root_dir, test_app_root_dir + "/" + self.dirTime]
+        directory = [x['sys_test_root_dir'] + "/" + x['sys_test_pull'], x + "/" + self.dirTime]
+        print(directory)
+        exit()
         WC = WriteContent()
 
         if WC.read_confirm_location(directory):
             WC.write_location(directory)
-            WC.write_transfer_files(list_of_file_names, directory)
+            WC.write_transfer_files(list_of_file_names, directory, user_sel_cmd)
 
         else:
             print("unable to locate directory")
@@ -119,25 +120,23 @@ class HubStation(object):
 
 class WriteContent(object):
     @staticmethod
-    def write_transfer_files(read_file_list, directory):
+    def write_transfer_files(read_file_list, directory, user_sel_cmd, s="/"):
 
         if isinstance(read_file_list, dict):
-            s = "/"
 
             for extensions, titles in read_file_list.items():
                 os.makedirs(extensions)
                 print("made directories ../%s " % extensions)
 
                 for per_title in titles:
-                    shutil.move(directory[0] + s + per_title + '.' + extensions,
-                                directory[1] + s + extensions + s + per_title + '.' + extensions)
+                    user_sel_cmd(directory[0] + s + per_title + '.' + extensions,
+                                 directory[1] + s + extensions + s + per_title + '.' + extensions)
         else:
             print("array type isn't dict{} \nPausing app...")
 
     @staticmethod
     def read_confirm_location(x):
         if not os.path.exists(x[1]):
-            print("Top tier folder doesn't exist..let's create one")
             return True
         else:
             return False

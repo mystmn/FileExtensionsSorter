@@ -45,6 +45,7 @@ class MainMenu():
                     "html",
                     "doc",
                     "bimp",
+                    "png",
                 ]
             },
             {
