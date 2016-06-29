@@ -1,4 +1,7 @@
 from accessory.sys import MainMenu
+from accessory.errors.station import e_catalog
+import subprocess
+
 
 class Display(object):
     @staticmethod
@@ -24,11 +27,11 @@ class Display(object):
                 if x is each['nmb']:
                     return list_options[x]
 
-            print(station.e_catalog()[1])
+            print(e_catalog()[1])
             return self.approve_user_input(list_options)
 
         except ValueError:
-            print(station.e_catalog()[2])
+            print(e_catalog()[2])
             return self.approve_user_input(list_options)
 
     @staticmethod
@@ -36,6 +39,7 @@ class Display(object):
         p = subprocess.Popen(['reset'], stdout=subprocess.PIPE)
         p.stdout.close()
         p.wait()
+
 
 if __name__ == "__main__":
     pass

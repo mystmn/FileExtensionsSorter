@@ -2,7 +2,8 @@ from accessory.errors import station
 from accessory.sys import MainMenu
 from accessory.display import Display
 from collections import defaultdict
-import subprocess, os, time, shutil
+from controller.content import WriteContent
+import os, time, shutil
 
 
 class HubStation(object):
@@ -15,22 +16,24 @@ class HubStation(object):
         local['settings'] = {
             'sys_test_root_dir': test_app_root_dir + '/Test zone',
             'sys_test_pull': '/pull',
+            'sys_test_push': '/push',
             'user_gen_content_dir': '',
             'user_gen_saved_dir': '',
         }
 
         # Show menu in the terminal
-        Display().reset
+        d = Display()
+        d.reset
 
         if not message_of_the_day:
             message_of_the_day = station.e_catalog()[0]
         else:
             message_of_the_day = message_of_the_day
 
-        Display().menu(self.MMc, message_of_the_day)
+        d.menu(self.MMc, message_of_the_day)
 
         # What option would the user like to select?
-        approved_commands = Display().approve_user_input(self.MMc)
+        approved_commands = d.approve_user_input(self.MMc)
 
         # User would like to cut/sort files
         if approved_commands['nmb'] == 1:
@@ -40,16 +43,18 @@ class HubStation(object):
         else:
             user_selected_option = 0
 
-        Display.reset()
+        d.reset()
 
         # Seek the files that match or requirements
         if not local['settings']['user_gen_saved_dir']:
-            default_dir = local['settings']['sys_test_root_dir']
+            default_dir = local['settings']['sys_test_root_dir'] + '/' + local['settings']['sys_test_pull']
         else:
             default_dir = 'user_gen_saved_dir'
 
         harvested = self.gathering_list(default_dir)
 
+        print(harvested)
+        exit()
         # Start sorting and building directories
         cl_list_reclusive_files = self.dict_build_listing(harvested)
 
@@ -58,8 +63,7 @@ class HubStation(object):
     def make_directory(self, x, list_of_file_names, user_sel_cmd):
 
         directory = [x['sys_test_root_dir'] + "/" + x['sys_test_pull'], x + "/" + self.dirTime]
-        print(directory)
-        exit()
+
         WC = WriteContent()
 
         if WC.read_confirm_location(directory):
@@ -116,71 +120,3 @@ class HubStation(object):
             exit("I'm empty and need content")
 
         return cl_list_gather_files
-
-
-class WriteContent(object):
-    @staticmethod
-    def write_transfer_files(read_file_list, directory, user_sel_cmd, s="/"):
-
-        if isinstance(read_file_list, dict):
-
-            for extensions, titles in read_file_list.items():
-                os.makedirs(extensions)
-                print("made directories ../%s " % extensions)
-
-                for per_title in titles:
-                    user_sel_cmd(directory[0] + s + per_title + '.' + extensions,
-                                 directory[1] + s + extensions + s + per_title + '.' + extensions)
-        else:
-            print("array type isn't dict{} \nPausing app...")
-
-    @staticmethod
-    def read_confirm_location(x):
-        if not os.path.exists(x[1]):
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def write_location(x):
-        os.makedirs(x[1])
-        os.chdir(x[1])
-        print("'%s' has been created" % x[1])
-
-
-class Display(object):
-    @staticmethod
-    def menu(list_options, x, display_list=[]):
-
-        for y in list_options[1:]:
-            display_list.append(("%s) %s" % (y['nmb'], y['Mes'])))
-
-        i = "*" * 4
-        print("%s %s %s" % (i, x, i))
-        print(list_options[0]['Mes'])
-
-        for each_line in display_list:
-            print("%s" % each_line)
-
-    def approve_user_input(self, list_options):
-
-        try:
-            x = int(input("Please Select > "))
-
-            for each in MainMenu().catalog()[1:]:  # 0 is a Header Message
-
-                if x is each['nmb']:
-                    return list_options[x]
-
-            print(station.e_catalog()[1])
-            return self.approve_user_input(list_options)
-
-        except ValueError:
-            print(station.e_catalog()[2])
-            return self.approve_user_input(list_options)
-
-    @staticmethod
-    def reset():
-        p = subprocess.Popen(['reset'], stdout=subprocess.PIPE)
-        p.stdout.close()
-        p.wait()
