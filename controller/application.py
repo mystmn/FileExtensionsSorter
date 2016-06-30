@@ -1,9 +1,7 @@
-from accessory.errors import station
-from accessory.sys import MainMenu
-from accessory.display import Display
+from accessory import MainMenu, Display, errors
 from collections import defaultdict
 from controller.content import WriteContent
-import os, time, shutil
+import os, shutil, time
 
 
 class HubStation(object):
@@ -26,7 +24,7 @@ class HubStation(object):
         d.reset
 
         if not message_of_the_day:
-            message_of_the_day = station.e_catalog()[0]
+            message_of_the_day = errors.catalog()[0]
         else:
             message_of_the_day = message_of_the_day
 
@@ -47,22 +45,23 @@ class HubStation(object):
 
         # Seek the files that match or requirements
         if not local['settings']['user_gen_saved_dir']:
-            default_dir = local['settings']['sys_test_root_dir'] + '/' + local['settings']['sys_test_pull']
+            user_generated_directory = local['settings']['sys_test_root_dir'] + '/' + local['settings']['sys_test_pull']
+            user_generated_saved_dir = local['settings']['sys_test_root_dir'] + '/' + local['settings']['sys_test_push']
         else:
-            default_dir = 'user_gen_saved_dir'
+            user_generated_directory = 'user_gen_saved_dir'
 
-        harvested = self.gathering_list(default_dir)
+        harvested = self.gathering_list(user_generated_directory)
 
-        print(harvested)
-        exit()
         # Start sorting and building directories
         cl_list_reclusive_files = self.dict_build_listing(harvested)
 
-        self.make_directory(local['settings'], cl_list_reclusive_files, user_selected_option)
+        self.make_directory(user_generated_directory, user_generated_saved_dir, cl_list_reclusive_files, user_selected_option)
 
-    def make_directory(self, x, list_of_file_names, user_sel_cmd):
+    def make_directory(self, user_generated_directory, user_generated_saved_dir, list_of_file_names, user_sel_cmd):
 
-        directory = [x['sys_test_root_dir'] + "/" + x['sys_test_pull'], x + "/" + self.dirTime]
+        directory = [user_generated_directory, user_generated_saved_dir + "/" + self.dirTime]
+
+        print('{}'.format(directory))
 
         WC = WriteContent()
 
@@ -71,7 +70,7 @@ class HubStation(object):
             WC.write_transfer_files(list_of_file_names, directory, user_sel_cmd)
 
         else:
-            print("unable to locate directory")
+            print('{}'.format('unable to locate directory'))
 
     @staticmethod
     def dict_build_listing(classify, fL=defaultdict(list)):
@@ -96,9 +95,9 @@ class HubStation(object):
         return set(file_extensions), set(files_validated)
 
     @staticmethod
-    def gathering_list(search_defined_directory, names=[], cl_list_gather_files=[]):
+    def gathering_list(search_defined_directory, cl_list_gather_files=[]):
         os.chdir(search_defined_directory),
-        print("switched dir...%s" % os.getcwd())
+        print('{0} {1}'.format('switched dir..', os.getcwd()))
 
         for (search_defined_directory, folder_List, file_List) in os.walk(search_defined_directory):
 
@@ -114,7 +113,7 @@ class HubStation(object):
                         files_dict = {y: search_defined_directory}
                         cl_list_gather_files.append(files_dict)
             else:
-                print("No files are listed in that directory")
+                print('{}'.format("No files are listed in that directory"))
 
         if not cl_list_gather_files:
             exit("I'm empty and need content")

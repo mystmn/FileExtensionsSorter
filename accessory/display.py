@@ -1,5 +1,4 @@
-from accessory.sys import MainMenu
-from accessory.errors.station import e_catalog
+from accessory import MainMenu, errors
 import subprocess
 
 
@@ -11,11 +10,11 @@ class Display(object):
             display_list.append(("%s) %s" % (y['nmb'], y['Mes'])))
 
         i = "*" * 4
-        print("%s %s %s" % (i, x, i))
-        print(list_options[0]['Mes'])
+        print('{0}, {1}, {2}'.format(i, x, i))
+        print('{}'.format(list_options[0]['Mes']))
 
         for each_line in display_list:
-            print("%s" % each_line)
+            print('{}'.format(each_line))
 
     def approve_user_input(self, list_options):
 
@@ -27,11 +26,12 @@ class Display(object):
                 if x is each['nmb']:
                     return list_options[x]
 
-            print(e_catalog()[1])
+            print('{}'.format(errors.catalog()[1]))
+
             return self.approve_user_input(list_options)
 
         except ValueError:
-            print(e_catalog()[2])
+            print('{}'.format(errors.catalog()[2]))
             return self.approve_user_input(list_options)
 
     @staticmethod
